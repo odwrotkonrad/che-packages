@@ -6,16 +6,27 @@ SHELL := zsh
 PY ?= python3
 VENV := .user/venv
 PYTEST := $(VENV)/bin/pytest
-CHE_VERSION ?= latest
+include che-pin.env
+#[what] a merge-request pipeline's resolved che: an open go-modules MR's prerelease, binary and
+#   schema ref together, overriding che-pin.env's floor. Empty everywhere else, so the pin stands.
+#[why] generated at parse time, before the includes below expand CHE_VERSION and CHE_SCHEMA_REF, and
+#   ignoring failure: resolution is best-effort, never a reason to break a catalog build
+RESOLVED_PIN := .user/che-pin.resolved.env
+_ := $(shell ci/resolve-che-version.zsh $(RESOLVED_PIN) >&2 || :)
+-include $(RESOLVED_PIN)
 CHE_BIN := .user/bin/che
+SCHEMA := .user/packages.schema.json
+#[why] che owns the vocabulary: the schema is generated from its Go models and fetched from
+#   the che repo, never copied here, so one contract has one source of truth
+SCHEMA_URL ?= https://gitlab.com/konradodwrot/go-modules/-/raw/$(CHE_SCHEMA_REF)/che/assets/data/packages.schema.json
 TARGET_ARCH ?= $(if $(filter arm64 aarch64,$(shell uname -m)),arm64,amd64)
 CHE_PKG_URL := https://gitlab.com/api/v4/projects/konradodwrot%2Fgo-modules/packages/generic/che
 
 PACKAGE ?=
 METHOD ?=
 
-WRAPPERS := $(VENV) $(CHE_BIN)
-COMMANDS := render-templates test test-catalog test-install test-install-auto fetch-che clean
+WRAPPERS := $(VENV) $(CHE_BIN) $(SCHEMA)
+COMMANDS := render-templates test test-catalog test-install test-install-auto fetch-che fetch-schema clean
 
 .PHONY: $(COMMANDS)
 
@@ -35,8 +46,8 @@ render-templates:
 test: test-catalog test-install
 
 #[what] fast catalog validation: json schema, method resolution, verify derivation, manpage parsing
-test-catalog: $(VENV)
-	$(PYTEST) tests/test_catalog.py
+test-catalog: $(VENV) $(SCHEMA)
+	PACKAGES_SCHEMA=$(CURDIR)/$(SCHEMA) $(PYTEST) tests/test_catalog.py
 
 #[what] install tests, filtered by PACKAGE= and METHOD= (needs docker and a che binary)
 test-install: $(VENV) $(CHE_BIN)
@@ -49,17 +60,29 @@ test-install-auto: $(VENV) $(CHE_BIN)
 ##[<] Test
 
 ##[>] Tools [genai-include]
+#[what] download the packages schema che generates from its Go models
+fetch-schema: $(SCHEMA)
+
+$(SCHEMA): che-pin.env $(RESOLVED_PIN)
+	mkdir -p .user
+	curl -fsSL "$(SCHEMA_URL)" -o $(SCHEMA)
+
 #[what] download the linux che binary the install tests drive into .user/bin
 fetch-che: $(CHE_BIN)
 
-$(CHE_BIN):
+#[why] the resolved pin is a prerequisite, not just an existence check: a cached binary from a run
+#   at a different version is the wrong binary, and silently driving it proves nothing
+$(CHE_BIN): che-pin.env $(RESOLVED_PIN)
 	mkdir -p .user/bin
 	curl -fsSL "$(CHE_PKG_URL)/$(CHE_VERSION)/che_$(CHE_VERSION)_linux_$(TARGET_ARCH).tar.gz" \
 		| tar -xz -C .user/bin che
 	chmod +x $(CHE_BIN)
+	#[why] tar restores the archive's mtime, which predates the prerequisites: without this the
+	#   binary looks stale on every run and re-downloads ~100MB each time
+	touch $(CHE_BIN)
 
 #[what] drop the venv and downloaded binaries
 clean:
-	rm -rf $(VENV) .user/bin
+	rm -rf $(VENV) .user/bin $(SCHEMA)
 ##[<] Tools
 ##[<] 🤖🤖

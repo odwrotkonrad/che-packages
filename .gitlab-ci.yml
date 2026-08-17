@@ -28,6 +28,9 @@ stages:
   - trigger-downstream
 
 variables:
+  #[why] the shared ci-linux image carries no python: this repo is its only python consumer,
+  #   so the validate job pulls a stock slim image instead of bloating the shared base
+  CI_IMAGE_PY: python:3.13-slim
   CI_IMAGE: registry.gitlab.com/konradodwrot/infra/oci-images/ci-linux:latest
   CI_IMAGE_DIND: registry.gitlab.com/konradodwrot/infra/oci-images/ci-linux-dind:latest
   CI_IMAGE_DIND_ARM64: registry.gitlab.com/konradodwrot/infra/oci-images/ci-linux-dind:latest-arm64
@@ -35,10 +38,15 @@ variables:
 #[what] fast automatic gate: schema validation plus every entry's methods and verify commands resolving
 validate-catalog:
   stage: validate
-  image: $CI_IMAGE
+  image: $CI_IMAGE_PY
   needs: []
+  #[why] curl, zsh and make, absent from the stock python image: the schema fetch and the
+  #   prerelease resolver need the first two, the script below runs through the third. without
+  #   the fetch the schema check skips itself and this job reports success while validating nothing
   before_script:
-    - pip install --quiet --break-system-packages pytest pyyaml jsonschema
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates zsh make
+  #[why] through make, the same path a local run takes: invoking pytest directly bypassed the
+  #   schema fetch, so the job and a maintainer's machine validated different things
   script:
     - make test-catalog
 
@@ -55,7 +63,8 @@ validate-catalog:
   needs:
     - job: validate-catalog
   before_script:
-    - pip install --quiet --break-system-packages pytest pyyaml jsonschema
+    #[why] zsh: the prerelease resolver make runs before fetching
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends python3-pip python3-venv curl ca-certificates zsh
     - make fetch-che
 
 #[what] automatic coverage: the first CHE_E2E_AUTO_PER_METHOD packages of every install method
