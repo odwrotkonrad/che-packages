@@ -13,6 +13,11 @@ REPO = Path(__file__).resolve().parent.parent
 
 AUTO_PER_METHOD = int(os.environ.get("CHE_E2E_AUTO_PER_METHOD", "2"))
 
+#[why] the che binary under test is mounted onto the container's PATH, so che's own entry can
+#   never install here: che reports it already present and the method never runs. Testing it
+#   would need a container without che, which is the one thing this harness cannot provide
+SELF_INSTALL = {"che"}
+
 
 def pytest_addoption(parser):
     parser.addoption("--package", default="", help="only this package (comma-separated)")
@@ -57,6 +62,8 @@ def _cases(config) -> list[tuple[str, str, str]]:
     used: dict[str, int] = {}
     cases = []
     for name in sorted(cat.packages):
+        if name in SELF_INSTALL:
+            continue
         entry = cat.packages[name]
         for mgr in catalog.eligible_methods(entry, eligible, method_sel):
             key = catalog._method_key(mgr)

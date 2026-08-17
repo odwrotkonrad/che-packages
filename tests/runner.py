@@ -66,7 +66,10 @@ class Result:
 
 
 def _install_argv(pkg: str, method: str, kind: str = "") -> list[str]:
-    argv = ["packages", "install", "--packages-file", "/work/packages.yml"]
+    #[why] --missing-method-warn: an entry gated by os:/requiresCommand: has no applicable method
+    #   on this target, which is a skip, not a failure. Without it che exits nonzero and the
+    #   harness reports a broken install for a package that was never meant to install here
+    argv = ["packages", "install", "--packages-file", "/work/packages.yml", "--missing-method-warn"]
     if kind:
         argv += ["--kind", kind]
     argv += ["--only-methods", method, pkg]
