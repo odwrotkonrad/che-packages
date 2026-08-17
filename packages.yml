@@ -409,11 +409,12 @@ packages:
             - apt:
                 versionMap: {"12": "4:12.2.0-3"}
     gcloud:
+        #[why] no apt installer: an apt-managed gcloud disables its component manager, so
+        #   toolPackages.gcloud's `gcloud components install` fails with "sudo apt-get install
+        #   google-cloud-cli-gke-gcloud-auth-plugin". Until che routes a component through the
+        #   manager that installed its package, linux has no applicable gcloud installer and the
+        #   component is never attempted there
         installers:
-            - apt:
-                packageName: google-cloud-cli
-                versionMap: {"579.0.0": "579.0.0-0"}
-                fromRegistry: packages.cloud.google.com/apt
             - brew/cask:
                 packageName: gcloud-cli
     get-os-open-files-with:
