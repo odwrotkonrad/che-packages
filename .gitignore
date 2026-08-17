@@ -1,5 +1,6 @@
 ##[>] 🤖🤖
 .user/
+packages.schema.json
 __pycache__/
 *.pyc
 .pytest_cache/

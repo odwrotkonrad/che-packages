@@ -11,7 +11,7 @@ CHE_BIN := .user/bin/che
 SCHEMA := .user/packages.schema.json
 #[why] che owns the vocabulary: the schema is generated from its Go models and fetched from
 #   the che repo, never copied here, so one contract has one source of truth
-SCHEMA_URL ?= https://gitlab.com/konradodwrot/go-modules/-/raw/main/che/assets/data/packages.schema.json
+SCHEMA_URL ?= https://gitlab.com/konradodwrot/go-modules/-/raw/$(CHE_SCHEMA_REF)/che/assets/data/packages.schema.json
 TARGET_ARCH ?= $(if $(filter arm64 aarch64,$(shell uname -m)),arm64,amd64)
 CHE_PKG_URL := https://gitlab.com/api/v4/projects/konradodwrot%2Fgo-modules/packages/generic/che
 

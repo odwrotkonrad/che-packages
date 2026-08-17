@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import jsonschema
@@ -20,8 +21,16 @@ TARGETS = [
 
 
 def test_catalog_matches_schema():
-    schema = json.loads((REPO / "packages.schema.json").read_text())
-    jsonschema.validate(yaml.safe_load(catalog.CATALOG_PATH.read_text()), schema)
+    """The catalog validates against the schema che generates from its Go models.
+
+    1. Read the schema fetched by `make fetch-schema` (PACKAGES_SCHEMA overrides the path).
+    2. Parse packages.yml.
+    3. Raise when the catalog uses vocabulary the schema does not define.
+    """
+    path = Path(os.environ.get("PACKAGES_SCHEMA", REPO / ".user" / "packages.schema.json"))
+    if not path.exists():
+        pytest.skip(f"schema absent at {path}; run make fetch-schema")
+    jsonschema.validate(yaml.safe_load(catalog.CATALOG_PATH.read_text()), json.loads(path.read_text()))
 
 
 def test_every_package_installs_somewhere(cat):
