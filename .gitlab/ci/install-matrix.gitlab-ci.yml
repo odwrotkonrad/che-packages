@@ -1,0 +1,148 @@
+##[>] 🤖🤖
+.install-package-list: &packages
+  - apt-transport-https
+  - aws
+  - az
+  - bat
+  - bats
+  - beekeeper-studio
+  - brew
+  - ca-certificates
+  - ccstatusline
+  - che
+  - cilium
+  - claude
+  - code
+  - codex
+  - containerd
+  - copilot
+  - corepack
+  - curl
+  - docker
+  - docker-buildx-plugin
+  - docker-compose-plugin
+  - dockerd
+  - duti
+  - fd
+  - ffmpeg
+  - font-jetbrains-mono
+  - gcc
+  - gcloud
+  - get-os-open-files-with
+  - gh
+  - git
+  - gitlab-runner
+  - gitlab-tart-executor
+  - glab
+  - go
+  - gopls
+  - goreleaser
+  - gpg
+  - grafana
+  - htop
+  - jaeger
+  - jq
+  - kind
+  - kitty
+  - kubectl
+  - kubectx
+  - kubens
+  - lefthook
+  - libbz2
+  - libc6-dev
+  - libffi
+  - liblzma
+  - libsqlite3
+  - libssl-dev
+  - libtool
+  - libyaml-dev
+  - logcli
+  - loki
+  - make
+  - nix
+  - nmap
+  - node
+  - nvm
+  - ollama
+  - op
+  - openssh
+  - openssl
+  - otelcol
+  - packer
+  - pandoc
+  - patch
+  - pcre2
+  - pipx
+  - pkgconf
+  - pnpm
+  - podman
+  - podman-desktop
+  - procs
+  - prometheus
+  - pstree
+  - pyenv
+  - pyright
+  - python3
+  - readline
+  - rg
+  - ruby
+  - ruby-lsp
+  - shellcheck
+  - showkey
+  - sqlite3
+  - stow
+  - tar
+  - tart
+  - tcl
+  - terraform
+  - tmux
+  - tree
+  - tsc
+  - typescript-language-server
+  - unzip
+  - uv
+  - watch
+  - xz
+  - yq
+  - zig
+  - zlib
+  - zlib1g-dev
+  - zsh
+  - zstd
+
+#[what] one optional manual job per catalog package per arch: every method that package declares
+#[why] the automatic tier already proves each method works; the full catalog is opt-in because these
+#   dind matrix jobs flood the shared runner queue and starve every other repo's pipeline
+.install-manual:
+  extends: .install-base
+  stage: test-install-manual
+  variables:
+    CHE_E2E_TIER: all
+    METHOD: all
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      allow_failure: true
+  script:
+    - make test-install PACKAGE="$PACKAGE" METHOD="$METHOD" TARGET_ARCH=$TARGET_ARCH
+
+test-install-package-amd64:
+  extends: .install-manual
+  image: $CI_IMAGE_DIND
+  variables:
+    TARGET_ARCH: amd64
+  parallel:
+    matrix:
+      - PACKAGE: *packages
+
+test-install-package-arm64:
+  extends: .install-manual
+  image: $CI_IMAGE_DIND_ARM64
+  tags:
+    - gke-linux-arm64-small
+  variables:
+    TARGET_ARCH: arm64
+  parallel:
+    matrix:
+      - PACKAGE: *packages
+##[<] 🤖🤖

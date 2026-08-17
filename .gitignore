@@ -1,0 +1,9 @@
+##[>] 🤖🤖
+.user/
+__pycache__/
+*.pyc
+.pytest_cache/
+AGENTS.md
+CLAUDE.md
+assets/docs-agents/
+##[<] 🤖🤖
