@@ -409,6 +409,8 @@ packages:
             - apt:
                 versionMap: {"12": "4:12.2.0-3"}
     gcloud:
+        requires:
+            - python3
         installers:
             - script:
                 validateArtifact: ${XDG_BIN_HOME:-$HOME/.local/bin}/gcloud
@@ -431,6 +433,8 @@ packages:
                   for b in gcloud gsutil bq docker-credential-gcloud; do
                     ln -sf "$share/google-cloud-sdk/bin/$b" "$bin/$b"
                   done
+            - brew/cask:
+                packageName: gcloud-cli
     get-os-open-files-with:
         version: latest #[why] own module
         installers:

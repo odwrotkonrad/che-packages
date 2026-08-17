@@ -126,9 +126,19 @@ def run_install(pkg: str, method: str, verify: Verify, che_bin: Path, arch: str,
         "-e", "CHE_PACKAGES_DOWNLOAD_CACHE_DIR=/che-cache",
         ensure_image(arch), "sh", "-ec", script,
     ]
-    proc = subprocess.run(argv, capture_output=True, text=True)
-    out = proc.stdout + proc.stderr
-    if proc.returncode != 0:
-        raise AssertionError(f"install {pkg} via {method} failed (exit {proc.returncode}):\n{out}")
+    #[why] streamed, not captured: a 20 minute job showed nothing until it ended, so a stuck
+    #   install was indistinguishable from a slow one. Each line is echoed as it arrives and
+    #   also kept, since the assertions below read the whole output
+    print(f"\n=== install {pkg} via {method} ({arch}) ===", flush=True)
+    lines: list[str] = []
+    proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+    assert proc.stdout is not None
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        lines.append(line)
+    code = proc.wait()
+    out = "".join(lines)
+    if code != 0:
+        raise AssertionError(f"install {pkg} via {method} failed (exit {code}):\n{out}")
     return Result(output=out, skipped=SKIP_MARKER in out)
 ##[<] 🤖🤖

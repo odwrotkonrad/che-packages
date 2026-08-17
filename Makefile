@@ -24,6 +24,7 @@ CHE_PKG_URL := https://gitlab.com/api/v4/projects/konradodwrot%2Fgo-modules/pack
 
 PACKAGE ?=
 METHOD ?=
+INSTALL_JOBS ?= 4
 
 WRAPPERS := $(VENV) $(CHE_BIN) $(SCHEMA)
 COMMANDS := render-templates test test-catalog test-install test-install-auto fetch-che fetch-schema clean
@@ -33,7 +34,7 @@ COMMANDS := render-templates test test-catalog test-install test-install-auto fe
 $(VENV):
 	$(PY) -m venv $(VENV)
 	$(VENV)/bin/pip install --quiet --upgrade pip
-	$(VENV)/bin/pip install --quiet pytest pyyaml jsonschema
+	$(VENV)/bin/pip install --quiet pytest pytest-xdist pyyaml jsonschema
 
 ##[>] Docs [genai-include]
 #[what] render *.ontoRepo.tpl onto the repo (the per-package CI matrix)
@@ -55,8 +56,10 @@ test-install: $(VENV) $(CHE_BIN)
 		$(if $(PACKAGE),--package=$(PACKAGE)) $(if $(METHOD),--method=$(METHOD))
 
 #[what] the automatic tier only: the first CHE_E2E_AUTO_PER_METHOD packages of each method
+#[why] -n: each case is an isolated container, so they parallelise cleanly. Sequentially the
+#   auto tier took over 20 minutes of mostly-idle waiting on registry downloads
 test-install-auto: $(VENV) $(CHE_BIN)
-	CHE_BIN=$(CURDIR)/$(CHE_BIN) TARGET_ARCH=$(TARGET_ARCH) $(PYTEST) tests/test_install.py --tier=auto
+	CHE_BIN=$(CURDIR)/$(CHE_BIN) TARGET_ARCH=$(TARGET_ARCH) $(PYTEST) tests/test_install.py --tier=auto -n $(INSTALL_JOBS)
 ##[<] Test
 
 ##[>] Tools [genai-include]
