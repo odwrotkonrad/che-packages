@@ -37,8 +37,10 @@ def ensure_image(arch: str) -> str:
         if subprocess.run(["docker", "image", "inspect", tag], capture_output=True).returncode != 0:
             build = subprocess.run(
                 ["docker", "build", "--platform", f"linux/{arch}",
-                 "--file", str(DOCKERFILE), "--tag", tag, str(DOCKERFILE.parent)],
+                 "--tag", tag, "-"],
+                stdin=DOCKERFILE.open("rb"),
                 capture_output=True, text=True,
+                env=os.environ | {"DOCKER_BUILDKIT": "1"},
             )
             if build.returncode != 0:
                 raise AssertionError(
