@@ -409,11 +409,30 @@ packages:
             - apt:
                 versionMap: {"12": "4:12.2.0-3"}
     gcloud:
+        requires:
+            - python3
         installers:
-            - apt:
-                packageName: google-cloud-cli
-                versionMap: {"579.0.0": "579.0.0-0"}
-                fromRegistry: packages.cloud.google.com/apt
+            - script:
+                validateArtifact: ${XDG_BIN_HOME:-$HOME/.local/bin}/gcloud
+                run: |
+                  share="${XDG_DATA_HOME:-$HOME/.local/share}"
+                  bin="${XDG_BIN_HOME:-$HOME/.local/bin}"
+                  case "$(uname -s)" in
+                    Darwin) os=darwin ;;
+                    *) os=linux ;;
+                  esac
+                  case "$(uname -m)" in
+                    aarch64|arm64) arch=arm ;;
+                    *) arch=x86_64 ;;
+                  esac
+                  mkdir -p "$share" "$bin"
+                  rm -rf "$share/google-cloud-sdk"
+                  curl -fsSL "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${os}-${arch}.tar.gz" \
+                    | tar -xz -C "$share"
+                  "$share/google-cloud-sdk/install.sh" --quiet --usage-reporting false --path-update false --command-completion false
+                  for b in gcloud gsutil bq docker-credential-gcloud; do
+                    ln -sf "$share/google-cloud-sdk/bin/$b" "$bin/$b"
+                  done
             - brew/cask:
                 packageName: gcloud-cli
     get-os-open-files-with:

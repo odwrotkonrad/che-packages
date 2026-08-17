@@ -1,9 +1,11 @@
 ##[>] 🤖🤖
 from __future__ import annotations
 
+import fcntl
 import os
 import shlex
 import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -20,8 +22,8 @@ def ensure_image(arch: str) -> str:
     """Build the install base image (debian plus man-db) once per arch, tagged by arch.
 
     1. Return the tag untouched when CHE_E2E_IMAGE names an image to use as-is.
-    2. Return the tag when docker already has it.
-    3. Build it from install-base.Dockerfile otherwise.
+    2. Take an exclusive file lock, so parallel workers build the tag once between them.
+    3. Return the tag when docker already has it, build it from install-base.Dockerfile otherwise.
 
     Interfaces with:
       - `$ docker image inspect` / `$ docker build` — the local docker daemon
@@ -29,13 +31,20 @@ def ensure_image(arch: str) -> str:
     if os.environ.get("CHE_E2E_IMAGE"):
         return BASE_IMAGE
     tag = f"{BASE_IMAGE}:{arch}"
-    if subprocess.run(["docker", "image", "inspect", tag], capture_output=True).returncode == 0:
-        return tag
-    subprocess.run(
-        ["docker", "build", "--quiet", "--platform", f"linux/{arch}",
-         "--file", str(DOCKERFILE), "--tag", tag, str(DOCKERFILE.parent)],
-        check=True, capture_output=True, text=True,
-    )
+    lock = Path(tempfile.gettempdir()) / f"che-packages-image-{arch}.lock"
+    with open(lock, "w") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        if subprocess.run(["docker", "image", "inspect", tag], capture_output=True).returncode != 0:
+            build = subprocess.run(
+                ["docker", "build", "--platform", f"linux/{arch}",
+                 "--tag", tag, "-"],
+                stdin=DOCKERFILE.open("rb"),
+                capture_output=True, text=True,
+            )
+            if build.returncode != 0:
+                raise AssertionError(
+                    f"docker build {tag} failed (exit {build.returncode}):\n{build.stdout}{build.stderr}"
+                )
     return tag
 
 ENV_PRELUDE = """export HOME=/root
@@ -66,9 +75,6 @@ class Result:
 
 
 def _install_argv(pkg: str, method: str, kind: str = "") -> list[str]:
-    #[why] --missing-method-warn: an entry gated by os:/requiresCommand: has no applicable method
-    #   on this target, which is a skip, not a failure. Without it che exits nonzero and the
-    #   harness reports a broken install for a package that was never meant to install here
     argv = ["packages", "install", "--packages-file", "/work/packages.yml", "--missing-method-warn"]
     if kind:
         argv += ["--kind", kind]
@@ -107,6 +113,7 @@ def build_script(pkg: str, method: str, verify: Verify, log_level: str, kind: st
 
 def cache_dir() -> Path:
     base = Path(os.environ.get("E2E_INSTALL_CACHE_DIR", Path.home() / ".cache" / "che" / "dev"))
+    base = base / os.environ.get("PYTEST_XDIST_WORKER", "gw0")
     for sub in ("apt-cache", "apt-lists", "xdg", "downloads"):
         (base / sub).mkdir(parents=True, exist_ok=True)
     return base
@@ -126,9 +133,16 @@ def run_install(pkg: str, method: str, verify: Verify, che_bin: Path, arch: str,
         "-e", "CHE_PACKAGES_DOWNLOAD_CACHE_DIR=/che-cache",
         ensure_image(arch), "sh", "-ec", script,
     ]
-    proc = subprocess.run(argv, capture_output=True, text=True)
-    out = proc.stdout + proc.stderr
-    if proc.returncode != 0:
-        raise AssertionError(f"install {pkg} via {method} failed (exit {proc.returncode}):\n{out}")
+    print(f"\n=== install {pkg} via {method} ({arch}) ===", flush=True)
+    lines: list[str] = []
+    proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+    assert proc.stdout is not None
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        lines.append(line)
+    code = proc.wait()
+    out = "".join(lines)
+    if code != 0:
+        raise AssertionError(f"install {pkg} via {method} failed (exit {code}):\n{out}")
     return Result(output=out, skipped=SKIP_MARKER in out)
 ##[<] 🤖🤖

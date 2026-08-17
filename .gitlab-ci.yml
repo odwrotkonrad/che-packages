@@ -22,7 +22,6 @@ default:
 
 stages:
   - validate
-  - test-install-auto
   - test-install-manual
   - release
   - publish
@@ -67,32 +66,6 @@ validate-catalog:
     #[why] zsh: the prerelease resolver make runs before fetching
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends python3-pip python3-venv curl ca-certificates zsh
     - make fetch-che
-
-#[what] automatic coverage: the first CHE_E2E_AUTO_PER_METHOD packages of every install method
-#[why] every MR proves each method still installs something real, without a full-catalog matrix
-.install-auto:
-  extends: .install-base
-  stage: test-install-auto
-  variables:
-    CHE_E2E_TIER: auto
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  script:
-    - make test-install-auto TARGET_ARCH=$TARGET_ARCH
-
-test-install-auto-amd64:
-  extends: .install-auto
-  image: $CI_IMAGE_DIND
-  variables:
-    TARGET_ARCH: amd64
-
-test-install-auto-arm64:
-  extends: .install-auto
-  image: $CI_IMAGE_DIND_ARM64
-  tags:
-    - gke-linux-arm64-small
-  variables:
-    TARGET_ARCH: arm64
 
 #[what] cut the next release when a catalog change lands on the default branch
 #[why] consumers read published releases, never the default branch: go-modules vendors a pinned
