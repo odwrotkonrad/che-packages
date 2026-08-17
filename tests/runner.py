@@ -22,8 +22,8 @@ def ensure_image(arch: str) -> str:
     """Build the install base image (debian plus man-db) once per arch, tagged by arch.
 
     1. Return the tag untouched when CHE_E2E_IMAGE names an image to use as-is.
-    2. Return the tag when docker already has it.
-    3. Build it from install-base.Dockerfile otherwise.
+    2. Take an exclusive file lock, so parallel workers build the tag once between them.
+    3. Return the tag when docker already has it, build it from install-base.Dockerfile otherwise.
 
     Interfaces with:
       - `$ docker image inspect` / `$ docker build` — the local docker daemon
@@ -35,11 +35,15 @@ def ensure_image(arch: str) -> str:
     with open(lock, "w") as fh:
         fcntl.flock(fh, fcntl.LOCK_EX)
         if subprocess.run(["docker", "image", "inspect", tag], capture_output=True).returncode != 0:
-            subprocess.run(
-                ["docker", "build", "--quiet", "--platform", f"linux/{arch}",
+            build = subprocess.run(
+                ["docker", "build", "--platform", f"linux/{arch}",
                  "--file", str(DOCKERFILE), "--tag", tag, str(DOCKERFILE.parent)],
-                check=True, capture_output=True, text=True,
+                capture_output=True, text=True,
             )
+            if build.returncode != 0:
+                raise AssertionError(
+                    f"docker build {tag} failed (exit {build.returncode}):\n{build.stdout}{build.stderr}"
+                )
     return tag
 
 ENV_PRELUDE = """export HOME=/root
