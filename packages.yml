@@ -972,10 +972,6 @@ packages:
             - liblzma
             - libsqlite3
         installers:
-            - apt:
-                packageName: python3
-            - brew:
-                packageName: python3
             - pyenv:
                 versions:
                     - 3.14.6
