@@ -40,11 +40,11 @@ validate-catalog:
   stage: validate
   image: $CI_IMAGE_PY
   needs: []
-  #[why] curl and zsh, absent from the stock python image: the schema fetch and the prerelease
-  #   resolver both need them. without the fetch the schema check skips itself and this job
-  #   reports success while validating nothing
+  #[why] curl, zsh and make, absent from the stock python image: the schema fetch and the
+  #   prerelease resolver need the first two, the script below runs through the third. without
+  #   the fetch the schema check skips itself and this job reports success while validating nothing
   before_script:
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates zsh
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates zsh make
   #[why] through make, the same path a local run takes: invoking pytest directly bypassed the
   #   schema fetch, so the job and a maintainer's machine validated different things
   script:
