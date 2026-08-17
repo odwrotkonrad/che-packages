@@ -24,6 +24,7 @@ stages:
   - validate
   - test-install-auto
   - test-install-manual
+  - release
   - publish
   - trigger-downstream
 
@@ -92,6 +93,23 @@ test-install-auto-arm64:
     - gke-linux-arm64-small
   variables:
     TARGET_ARCH: arm64
+
+#[what] cut the next release when a catalog change lands on the default branch
+#[why] consumers read published releases, never the default branch: go-modules vendors a pinned
+#   version and `che packages update` resolves the latest alias, so a merged change nobody tagged
+#   reaches no one. glab release create mints the tag and the release together, which is what the
+#   publish job's asset links attach to
+#[why] the publish scripts are watched alongside the catalog: a fix to what they emit only ships
+#   through a tag, and go-modules had exactly this gap leave a broken brew formula published
+release-catalog:
+  stage: release
+  image: $CI_IMAGE
+  needs: []
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes: [packages.yml, scripts/**/*, ci/publish-packages-defs.zsh, ci/create-tag.zsh, ci/next-tag.zsh]
+  script:
+    - ci/create-tag.zsh "$CI_COMMIT_SHA"
 
 #[what] tag pipeline: tar packages.yml + scripts for $CI_COMMIT_TAG, publish to the generic package registry with a latest/ alias
 publish-definitions:
