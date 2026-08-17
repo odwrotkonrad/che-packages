@@ -75,6 +75,7 @@ validate-catalog:
   stage: test-install-auto
   variables:
     CHE_E2E_TIER: auto
+    CHE_E2E_AUTO_PER_METHOD: "1"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
@@ -84,7 +85,7 @@ test-install-auto-amd64:
   extends: .install-auto
   image: $CI_IMAGE_DIND
   tags:
-    - gke-linux-amd64-big
+    - gke-linux-amd64-medium
   variables:
     TARGET_ARCH: amd64
 
@@ -92,7 +93,7 @@ test-install-auto-arm64:
   extends: .install-auto
   image: $CI_IMAGE_DIND_ARM64
   tags:
-    - gke-linux-arm64-big
+    - gke-linux-arm64-medium
   variables:
     TARGET_ARCH: arm64
 
