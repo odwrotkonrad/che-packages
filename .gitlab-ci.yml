@@ -83,6 +83,8 @@ validate-catalog:
 test-install-auto-amd64:
   extends: .install-auto
   image: $CI_IMAGE_DIND
+  tags:
+    - gke-linux-amd64-big
   variables:
     TARGET_ARCH: amd64
 
@@ -90,7 +92,7 @@ test-install-auto-arm64:
   extends: .install-auto
   image: $CI_IMAGE_DIND_ARM64
   tags:
-    - gke-linux-arm64-small
+    - gke-linux-arm64-big
   variables:
     TARGET_ARCH: arm64
 
