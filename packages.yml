@@ -586,6 +586,12 @@ packages:
         #[why] the installer only drops kitty.app: without the links the binary never reaches PATH
         postInstall:
             path: scripts/post-install-kitty.sh
+    kitty-terminfo:
+        verify:
+            pkgMgrVersionCheck: true
+            checkInPath: false
+        installers:
+            - apt
     kubectl:
         completions:
             zsh:
@@ -750,6 +756,12 @@ packages:
                         curl --proto '=https' --tlsv1.2 -fsSL https://install.determinate.systems/nix | sh -s -- install --no-confirm
                     fi
                 validateArtifact: /nix/receipt.json
+    ncurses-term:
+        verify:
+            pkgMgrVersionCheck: true
+            checkInPath: false
+        installers:
+            - apt
     nmap:
         manpages: [nmap.1]
         installers:
