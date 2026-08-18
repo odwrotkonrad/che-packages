@@ -1144,6 +1144,13 @@ packages:
             - buildFromSource:
                 url: https://github.com/tmux/tmux/releases/download/{version}/tmux-{version}.tar.gz
                 manpages: [tmux.1]
+                #[why] jemalloc must be chosen explicitly since 3.7. the brew paths are where
+                #   darwin keeps libevent and ncurses headers, and a missing -I/-L dir is inert
+                #   on linux, so one arg list serves both platforms
+                configureArgs:
+                    - --disable-jemalloc
+                    - CPPFLAGS=-I/opt/homebrew/include -I/opt/homebrew/opt/ncurses/include
+                    - LDFLAGS=-L/opt/homebrew/lib -L/opt/homebrew/opt/ncurses/lib
             ##[<] 🤖🤖
             - nix:
                 versionMap: {"3.7b": "6b5e5b7a6631f065bf6908986990b37d845f847f"}
