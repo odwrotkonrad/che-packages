@@ -29,10 +29,6 @@ installerRegistries:
           components: main
         - url: https://download.docker.com/linux/debian
           verificationKey: https://download.docker.com/linux/debian/gpg
-        - url: https://packages.cloud.google.com/apt
-          verificationKey: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-          suites: cloud-sdk
-          components: main
         - url: https://konradodwrot.gitlab.io/go-modules/apt
           verificationKey: https://konradodwrot.gitlab.io/go-modules/apt/gpg.key
           suites: stable
