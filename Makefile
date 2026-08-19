@@ -30,20 +30,33 @@ PACKAGE ?=
 METHOD ?=
 INSTALL_JOBS ?= 4
 
-WRAPPERS := $(VENV) $(CHE_BIN) $(SCHEMA)
-COMMANDS := render-templates test test-catalog test-install test-install-auto fetch-che fetch-schema clean
+WRAPPERS := repo-prepare-dev-env $(VENV) $(CHE_BIN) $(SCHEMA)
+COMMANDS := render-templates repo-prepare-deps test test-catalog test-install test-install-auto fetch-che fetch-schema clean
 
-.PHONY: $(COMMANDS)
+.PHONY: $(WRAPPERS) $(COMMANDS)
 
 $(VENV):
 	$(PY) -m venv $(VENV)
 	$(VENV)/bin/pip install --quiet --upgrade pip
 	$(VENV)/bin/pip install --quiet pytest pytest-xdist pyyaml jsonschema
 
+##[>] Dev Environment [genai-include]
+#[why] no hooks step: this repo carries no lefthook config yet, so adopting the ci convention is a
+#   separate change; the wrapper chains what exists
+#[what] make a fresh clone a working checkout: generated files, dependencies
+repo-prepare-dev-env: render-templates repo-prepare-deps
+
+#[why] the repo declares python in its devEnv profile, so no host or image has to carry it in advance
+#[what] install this repo's toolchain, then its test dependencies
+repo-prepare-deps: $(VENV)
+	@che run --profiles=devEnv
+##[<] Dev Environment
+
 ##[>] Docs [genai-include]
 #[what] render *.ontoRepo.tpl onto the repo (the per-package CI matrix)
 render-templates:
 	che render tpl -f templates/2-data/install-matrix.gitlab-ci.yml.ontoRepo.tpl > .gitlab/ci/install-matrix.gitlab-ci.yml
+	@che render-templates --profiles=ontoRepo
 ##[<] Docs
 
 ##[>] Test [genai-include]
