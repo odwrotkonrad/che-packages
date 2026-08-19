@@ -23,7 +23,8 @@ def ensure_image(arch: str) -> str:
 
     1. Return the tag untouched when CHE_E2E_IMAGE names an image to use as-is.
     2. Take an exclusive file lock, so parallel workers build the tag once between them.
-    3. Return the tag when docker already has it, build it from install-base.Dockerfile otherwise.
+    3. Return the tag when docker already has it, build it from install-base.Dockerfile otherwise,
+       resolving its base from CHE_E2E_BASE_IMAGE when set, else the Dockerfile's public default.
 
     Interfaces with:
       - `$ docker image inspect` / `$ docker build` — the local docker daemon
@@ -35,9 +36,12 @@ def ensure_image(arch: str) -> str:
     with open(lock, "w") as fh:
         fcntl.flock(fh, fcntl.LOCK_EX)
         if subprocess.run(["docker", "image", "inspect", tag], capture_output=True).returncode != 0:
+            base_args = []
+            if base := os.environ.get("CHE_E2E_BASE_IMAGE"):
+                base_args = ["--build-arg", f"BASE_IMAGE={base}"]
             build = subprocess.run(
                 ["docker", "build", "--platform", f"linux/{arch}",
-                 "--tag", tag, "-"],
+                 *base_args, "--tag", tag, "-"],
                 stdin=DOCKERFILE.open("rb"),
                 capture_output=True, text=True,
             )
@@ -53,6 +57,7 @@ export XDG_CONFIG_HOME=/root/.config XDG_DATA_HOME=/root/.local/share XDG_BIN_HO
 export XDG_STATE_HOME=/root/.local/state XDG_CACHE_HOME=/root/.cache
 export PYENV_ROOT=/root/.pyenv NVM_DIR=/root/.config/nvm GOBIN=/root/go/bin GOFLAGS=-modcacherw
 export CHE_E2E=1 CHE_PACKAGES_BINARIES_REMOTE_ARCHIVE_CHECK_PRESENT_ON_PATH=0
+export CHE_BACKUP_AUTO_CREATE=false
 mkdir -p /root/.local/bin /root/.config /root/.local/state /tmp/work
 cd /tmp/work
 printf 'e2e:\\n  options: {autoDiscover: true}\\n' > che.yml

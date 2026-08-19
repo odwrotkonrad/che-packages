@@ -9,6 +9,8 @@ upstream:
   #[why] the packages schema is che's, generated from its Go models: this repo owns catalog
   #   content expressed in that vocabulary and validates against the published schema
   - go-modules/che
+  - infra/iac/ci-var/artifact-registry
+  - infra/iac/ci-var/ci-images-ref
 downstream:
   - {name: catalog, type: dataset}
 ##[<] 🤖🤖
