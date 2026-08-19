@@ -20,6 +20,10 @@ SCHEMA := .user/packages.schema.json
 #   the che repo, never copied here, so one contract has one source of truth
 SCHEMA_URL ?= https://gitlab.com/konradodwrot/go-modules/-/raw/$(CHE_SCHEMA_REF)/che/assets/data/packages.schema.json
 TARGET_ARCH ?= $(if $(filter arm64 aarch64,$(shell uname -m)),arm64,amd64)
+#[why] an os axis beside the arch, each naming exactly one: darwin arm64 needs a different
+#   virtualisation engine rather than another docker --platform value, so one combined "all"
+#   would read as every platform while meaning both linux arches
+TARGET_OS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 CHE_PKG_URL := https://gitlab.com/api/v4/projects/konradodwrot%2Fgo-modules/packages/generic/che
 
 PACKAGE ?=
@@ -50,16 +54,16 @@ test: test-catalog test-install
 test-catalog: $(VENV) $(SCHEMA)
 	PACKAGES_SCHEMA=$(CURDIR)/$(SCHEMA) $(PYTEST) tests/test_catalog.py
 
-#[what] install tests, filtered by PACKAGE= and METHOD= (needs docker and a che binary)
+#[what] install tests, filtered by PACKAGE= and METHOD=, on TARGET_OS=/TARGET_ARCH= (needs docker and a che binary)
 test-install: $(VENV) $(CHE_BIN)
-	CHE_BIN=$(CURDIR)/$(CHE_BIN) TARGET_ARCH=$(TARGET_ARCH) $(PYTEST) tests/test_install.py \
+	CHE_BIN=$(CURDIR)/$(CHE_BIN) TARGET_OS=$(TARGET_OS) TARGET_ARCH=$(TARGET_ARCH) $(PYTEST) tests/test_install.py \
 		$(if $(PACKAGE),--package=$(PACKAGE)) $(if $(METHOD),--method=$(METHOD))
 
 #[what] the automatic tier only: the first CHE_E2E_AUTO_PER_METHOD packages of each method
 #[why] -n: each case is an isolated container, so they parallelise cleanly. Sequentially the
 #   auto tier took over 20 minutes of mostly-idle waiting on registry downloads
 test-install-auto: $(VENV) $(CHE_BIN)
-	CHE_BIN=$(CURDIR)/$(CHE_BIN) TARGET_ARCH=$(TARGET_ARCH) $(PYTEST) tests/test_install.py --tier=auto -n $(INSTALL_JOBS)
+	CHE_BIN=$(CURDIR)/$(CHE_BIN) TARGET_OS=$(TARGET_OS) TARGET_ARCH=$(TARGET_ARCH) $(PYTEST) tests/test_install.py --tier=auto -n $(INSTALL_JOBS)
 ##[<] Test
 
 ##[>] Tools [genai-include]

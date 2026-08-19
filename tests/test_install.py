@@ -5,13 +5,13 @@ import pytest
 
 import catalog
 import runner
-from conftest import target_arch
+from conftest import target_arch, target_os
 
 
 def test_install_method(pkg, method, tier, cat, che_bin, repo):
     entry = cat.packages[pkg]
     verify = catalog.resolve_verify(entry, pkg, method)
-    result = runner.run_install(pkg, method, verify, che_bin, target_arch(), repo)
+    result = runner.run_install(pkg, method, verify, che_bin, target_os(), target_arch(), repo)
     if result.skipped:
         pytest.skip(f"{pkg}: no applicable installation method for {method} here")
     assert not catalog.already_present(result.output, pkg), (

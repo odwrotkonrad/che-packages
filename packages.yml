@@ -159,6 +159,14 @@ packages:
             checkInPath: false
         installers:
             - brew/cask
+    ##[>] 🤖🤖
+    bison:
+        verify:
+            pkgMgrVersionCheck: true
+            checkInPath: false
+        installers:
+            - apt
+    ##[<] 🤖🤖
     brew:
         - script:
             url: https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
@@ -578,6 +586,12 @@ packages:
         #[why] the installer only drops kitty.app: without the links the binary never reaches PATH
         postInstall:
             path: scripts/post-install-kitty.sh
+    kitty-terminfo:
+        verify:
+            pkgMgrVersionCheck: true
+            checkInPath: false
+        installers:
+            - apt
     kubectl:
         completions:
             zsh:
@@ -661,6 +675,14 @@ packages:
         installers:
             - apt:
                 packageName: libffi-dev
+    ##[>] 🤖🤖
+    libevent-dev:
+        verify:
+            pkgMgrVersionCheck: true
+            checkInPath: false
+        installers:
+            - apt
+    ##[<] 🤖🤖
     liblzma:
         version: 5.4.1
         verify:
@@ -670,6 +692,14 @@ packages:
             - apt:
                 packageName: liblzma-dev
                 versionMap: {"5.4.1": "5.4.1-1+deb12u1"}
+    ##[>] 🤖🤖
+    libncurses-dev:
+        verify:
+            pkgMgrVersionCheck: true
+            checkInPath: false
+        installers:
+            - apt
+    ##[<] 🤖🤖
     libsqlite3:
         verify:
             pkgMgrVersionCheck: true
@@ -726,6 +756,12 @@ packages:
                         curl --proto '=https' --tlsv1.2 -fsSL https://install.determinate.systems/nix | sh -s -- install --no-confirm
                     fi
                 validateArtifact: /nix/receipt.json
+    ncurses-term:
+        verify:
+            pkgMgrVersionCheck: true
+            checkInPath: false
+        installers:
+            - apt
     nmap:
         manpages: [nmap.1]
         installers:
@@ -1101,11 +1137,33 @@ packages:
         verify:
             cmd: tmux -V
         manpages: [tmux.1]
+        ##[>] 🤖🤖
+        requires:
+            - bison
+            - libevent-dev
+            - libncurses-dev
+            - pkgconf
+        ##[<] 🤖🤖
         installers:
             - brew
             - apt:
                 versionMap: {"3.5a": "3.5a-2~bpo12+1"}
                 fromRegistry: deb.debian.org/debian
+            ##[>] 🤖🤖
+            #[why] debian's newest is 3.5a (backports), so a consumer wanting the current release
+            #   asks for this method rather than the entry forcing it on everyone. no version or
+            #   checksum here: whoever pins the version vouches for the tarball it downloads
+            - buildFromSource:
+                url: https://github.com/tmux/tmux/releases/download/{version}/tmux-{version}.tar.gz
+                manpages: [tmux.1]
+                #[why] jemalloc must be chosen explicitly since 3.7. the brew paths are where
+                #   darwin keeps libevent and ncurses headers, and a missing -I/-L dir is inert
+                #   on linux, so one arg list serves both platforms
+                configureArgs:
+                    - --disable-jemalloc
+                    - CPPFLAGS=-I/opt/homebrew/include -I/opt/homebrew/opt/ncurses/include
+                    - LDFLAGS=-L/opt/homebrew/lib -L/opt/homebrew/opt/ncurses/lib
+            ##[<] 🤖🤖
             - nix:
                 versionMap: {"3.7b": "6b5e5b7a6631f065bf6908986990b37d845f847f"}
     tree:
