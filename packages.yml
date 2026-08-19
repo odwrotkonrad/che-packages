@@ -955,6 +955,8 @@ packages:
                     - linux-amd64: sha256:81964faf9d5cd0e9f399d5d0954fb6fe4d4d9f7d3cbec4507633df5a45b11713
                     - linux-arm64: sha256:74b4f82acc6fe553cbd5af20ba0baac420b42bef9bb0cbb38fef14b8317d9f91
                 url: https://github.com/dalance/procs/releases/download/v{version}/procs-v{version}-{arch}-linux.zip
+            - nix:
+                versionMap: {"0.14.12": "6b5e5b7a6631f065bf6908986990b37d845f847f"}
     prometheus:
         version: 3.13.2
         installers:
