@@ -118,8 +118,13 @@ trigger-control:
     - if: $CI_COMMIT_TAG
   inherit:
     variables: false
+  #[why] the names control's verify.zsh reads: RELEASE_TAG for the version, PRODUCER for whose
+  #   release this is, PRODUCER_ARTIFACT for which of its artifacts moved. a repo publishing
+  #   several things has one graph edge per artifact, and only that artifact's consumers regenerate
   variables:
-    CHE_PACKAGES_RELEASED_VERSION: ${CI_COMMIT_TAG}
+    RELEASE_TAG: $CI_COMMIT_TAG
+    PRODUCER: che-packages
+    PRODUCER_ARTIFACT: che-packages/catalog
   trigger:
     project: konradodwrot/control
     branch: main
