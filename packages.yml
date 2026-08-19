@@ -1217,6 +1217,10 @@ packages:
             - brew
             - apt:
                 packageName: procps
+            #[why] procps, like apt: nixpkgs ships watch inside that package, not under its own name
+            - nix:
+                packageName: procps
+                versionMap: {"4.0.5": "6b5e5b7a6631f065bf6908986990b37d845f847f"}
     xz:
         manpages: [xz.1]
         installers:
