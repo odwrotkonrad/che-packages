@@ -1,0 +1,14 @@
+##[>] 🤖🤖
+upstream:
+  - prose/repo-prose
+  - prose/conventions-doc
+  - prose/doc-templates
+  - prose/license
+  - infra/oci-images/ci-linux
+  - infra/oci-images/ci-linux-dind
+  #[why] the packages schema is che's, generated from its Go models: this repo owns catalog
+  #   content expressed in that vocabulary and validates against the published schema
+  - go-modules/che
+downstream:
+  - {name: catalog, type: dataset}
+##[<] 🤖🤖
