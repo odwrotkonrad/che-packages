@@ -119,7 +119,14 @@ def cache_dir() -> Path:
     return base
 
 
-def run_install(pkg: str, method: str, verify: Verify, che_bin: Path, arch: str, repo: Path, kind: str = "") -> Result:
+def run_install(pkg: str, method: str, verify: Verify, che_bin: Path, os_name: str, arch: str, repo: Path, kind: str = "") -> Result:
+    #[why] named and refused, never fallen through to docker: a darwin request that silently ran a
+    #   linux container would report a pass for a platform nothing proved
+    if os_name != "linux":
+        raise AssertionError(
+            f"no virtualisation engine wired for {os_name}-{arch}: only linux runs here, "
+            f"set TARGET_OS=linux or add an engine for {os_name}"
+        )
     cache = cache_dir()
     script = build_script(pkg, method, verify, os.environ.get("CHE_LOG_LEVEL", "info"), kind)
     argv = [

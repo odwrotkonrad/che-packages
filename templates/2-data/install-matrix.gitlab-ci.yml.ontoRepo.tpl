@@ -17,13 +17,16 @@
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
       allow_failure: true
+  #[why] the same make target a local run drives, differing only in the values passed: a matrix job
+  #   carrying test logic of its own would let CI and a maintainer's machine prove different things
   script:
-    - make test-install PACKAGE="$PACKAGE" METHOD="$METHOD" TARGET_ARCH=$TARGET_ARCH
+    - make test-install PACKAGE="$PACKAGE" METHOD="$METHOD" TARGET_OS=$TARGET_OS TARGET_ARCH=$TARGET_ARCH
 
 test-install-package-amd64:
   extends: .install-manual
   image: $CI_IMAGE_DIND
   variables:
+    TARGET_OS: linux
     TARGET_ARCH: amd64
   parallel:
     matrix:
@@ -35,6 +38,7 @@ test-install-package-arm64:
   tags:
     - gke-linux-arm64-small
   variables:
+    TARGET_OS: linux
     TARGET_ARCH: arm64
   parallel:
     matrix:

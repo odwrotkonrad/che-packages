@@ -95,7 +95,7 @@ publish-definitions:
     - ci/publish-packages-defs.zsh
 
 #[what] a published catalog reaches the binaries that embed it: go-modules re-vendors at the raised pin
-#[why] manual, not automatic: raising che/packages-pin.env is a reviewable change in that repo, not a side effect of tagging here
+#[why] manual, not automatic: adopting a newer catalog is a reviewable act, not a side effect of tagging here
 trigger-go-modules:
   stage: trigger-downstream
   needs: [publish-definitions]
@@ -106,4 +106,24 @@ trigger-go-modules:
   trigger:
     project: konradodwrot/go-modules
     branch: main
+
+#[what] the published version reaches the pin every consumer's CI reads: control evaluates the graph and drives the raise of the CHE_PACKAGES_REF group CI variable in infra/iac
+#[why] control, not infra/iac directly: control already owns the dependency graph and knows which
+#   repos consume the catalog, so onboarding a consumer stays an edit to that repo's own interface
+#   file rather than a hardcoded trigger here
+trigger-control:
+  stage: trigger-downstream
+  needs: [publish-definitions]
+  rules:
+    - if: $CI_COMMIT_TAG
+  inherit:
+    variables: false
+  variables:
+    CHE_PACKAGES_RELEASED_VERSION: ${CI_COMMIT_TAG}
+  trigger:
+    project: konradodwrot/control
+    branch: main
+    forward:
+      yaml_variables: true
+      pipeline_variables: false
 ##[<] 🤖🤖

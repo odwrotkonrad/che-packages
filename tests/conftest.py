@@ -41,6 +41,13 @@ def target_arch() -> str:
     return os.environ.get("TARGET_ARCH", _host_arch())
 
 
+#[why] TARGET_OS and TARGET_ARCH name one platform between them, never a set: darwin arm64 needs a
+#   different virtualisation engine, not another --platform value, so a combined "all" would
+#   quietly mean "both linux arches" while reading as everything
+def target_os() -> str:
+    return os.environ.get("TARGET_OS", platform.system().lower())
+
+
 @pytest.fixture(scope="session")
 def cat() -> catalog.Catalog:
     return catalog.load()
@@ -61,7 +68,10 @@ def repo() -> Path:
 
 def _cases(config) -> list[tuple[str, str, str]]:
     cat = catalog.load()
-    eligible = cat.eligible_installers("linux", target_arch(), "debian")
+    os_name = target_os()
+    #[why] the distro only narrows linux keys: the containers this drives are debian, and passing it
+    #   on darwin would look for a darwin-debian-* key that cannot exist
+    eligible = cat.eligible_installers(os_name, target_arch(), "debian" if os_name == "linux" else "")
     only_pkgs = [p.strip() for p in (config.getoption("--package") or "").split(",") if p.strip()]
     method_sel = config.getoption("--method") or ""
     tier = config.getoption("--tier") or os.environ.get("CHE_E2E_TIER", "all")
