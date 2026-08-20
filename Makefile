@@ -31,7 +31,7 @@ METHOD ?=
 INSTALL_JOBS ?= 4
 
 WRAPPERS := repo-prepare-dev-env $(VENV) $(CHE_BIN) $(SCHEMA)
-COMMANDS := render-templates repo-prepare-deps test test-catalog test-install test-install-auto fetch-che fetch-schema clean
+COMMANDS := render-templates repo-render-env repo-prepare-deps test test-catalog test-install test-install-auto fetch-che fetch-schema clean
 
 .PHONY: $(WRAPPERS) $(COMMANDS)
 
@@ -44,7 +44,7 @@ $(VENV):
 #[why] no hooks step: this repo carries no lefthook config yet, so adopting the ci convention is a
 #   separate change; the wrapper chains what exists
 #[what] make a fresh clone a working checkout: generated files, dependencies
-repo-prepare-dev-env: render-templates repo-prepare-deps
+repo-prepare-dev-env: repo-render-env render-templates repo-prepare-deps
 
 #[why] the repo declares python in its devEnv profile, so no host or image has to carry it in advance
 #[what] install this repo's toolchain, then its test dependencies
@@ -57,6 +57,10 @@ repo-prepare-deps: $(VENV)
 render-templates:
 	che render tpl -f templates/2-data/install-matrix.gitlab-ci.yml.ontoRepo.tpl > .gitlab/ci/install-matrix.gitlab-ci.yml
 	@che render-templates --profiles=ontoRepo
+
+#[what] render .env.tpl to .env: upstream refs and CI variables via glab, secrets via op
+repo-render-env:
+	@CHE_ENV_UNSET=empty che render-templates --profiles=envSeed
 ##[<] Docs
 
 ##[>] Test [genai-include]
