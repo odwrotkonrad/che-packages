@@ -30,10 +30,14 @@ stages:
 variables:
   #[why] the shared ci-linux image carries no python: this repo is its only python consumer,
   #   so the validate job pulls a stock slim image instead of bloating the shared base
-  CI_IMAGE_PY: $GRP_VAR_ARTIFACT_REGISTRY_PROXY_DOCKERHUB/library/python:3.13-slim
-  CI_IMAGE: $GRP_VAR_ARTIFACT_REGISTRY/ci-linux:$GRP_VAR_CI_IMAGES_REF
-  CI_IMAGE_DIND: $GRP_VAR_ARTIFACT_REGISTRY/ci-linux-dind:$GRP_VAR_CI_IMAGES_REF
-  CI_IMAGE_DIND_ARM64: $GRP_VAR_ARTIFACT_REGISTRY/ci-linux-dind:$GRP_VAR_CI_IMAGES_REF-arm64
+  CI_IMAGE_PY: $ARTIFACT_REGISTRY_PROXY_DOCKERHUB/library/python:3.13-slim
+  ARTIFACT_REGISTRY: $GRP_KO_VAR_ARTIFACT_REGISTRY
+  ARTIFACT_REGISTRY_PROXY_DOCKERHUB: $GRP_KO_VAR_ARTIFACT_REGISTRY_PROXY_DOCKERHUB
+  CI_IMAGES_REF: $GRP_KO_VAR_CI_IMAGES_REF
+  PROSE_REF: $GRP_KO_VAR_PROSE_REF
+  CI_IMAGE: $ARTIFACT_REGISTRY/ci-linux:$CI_IMAGES_REF
+  CI_IMAGE_DIND: $ARTIFACT_REGISTRY/ci-linux-dind:$CI_IMAGES_REF
+  CI_IMAGE_DIND_ARM64: $ARTIFACT_REGISTRY/ci-linux-dind:$CI_IMAGES_REF-arm64
 
 #[what] fast automatic gate: schema validation plus every entry's methods and verify commands resolving
 validate-catalog:
@@ -52,7 +56,7 @@ validate-catalog:
 
 .install-base:
   services:
-    - name: $GRP_VAR_ARTIFACT_REGISTRY_PROXY_DOCKERHUB/library/docker:dind
+    - name: $ARTIFACT_REGISTRY_PROXY_DOCKERHUB/library/docker:dind
       alias: docker
   variables:
     DOCKER_HOST: tcp://docker:2376
@@ -61,7 +65,7 @@ validate-catalog:
     DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
     #[why] docker run -v paths must live under /builds, the only volume the dind service shares with the job
     E2E_INSTALL_CACHE_DIR: $CI_PROJECT_DIR/.cache/che-e2e-install
-    CHE_E2E_BASE_IMAGE: $GRP_VAR_ARTIFACT_REGISTRY_PROXY_DOCKERHUB/library/debian:bookworm-slim
+    CHE_E2E_BASE_IMAGE: $ARTIFACT_REGISTRY_PROXY_DOCKERHUB/library/debian:bookworm-slim
   needs:
     - job: validate-catalog
   before_script:
