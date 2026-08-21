@@ -11,4 +11,5 @@ __pycache__/
 AGENTS.md
 CLAUDE.md
 assets/docs-agents/
+/.env
 ##[<] 🤖🤖
