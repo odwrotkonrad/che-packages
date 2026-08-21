@@ -7,6 +7,9 @@ workflow:
 
 include:
   - local: .gitlab/ci/install-matrix.gitlab-ci.yml
+  - project: konradodwrot/cross-repo/misc
+    ref: $GRP_KO_VAR_MISC_REF
+    file: ci/templates/TriggerAutomation.gitlab-ci.yml
 
 default:
   tags:
@@ -117,24 +120,13 @@ trigger-go-modules:
 #[why] control, not infra/iac directly: control already owns the dependency graph and knows which
 #   repos consume the catalog, so onboarding a consumer stays an edit to that repo's own interface
 #   file rather than a hardcoded trigger here
-trigger-control:
+trigger-automation:
+  extends: .TriggerAutomation
   stage: trigger-downstream
   needs: [publish-definitions]
   rules:
     - if: $CI_COMMIT_TAG
-  inherit:
-    variables: false
-  #[why] the names control's verify.zsh reads: RELEASE_TAG for the version, PRODUCER for whose
-  #   release this is, PRODUCER_ARTIFACT for which of its artifacts moved. a repo publishing
-  #   several things has one graph edge per artifact, and only that artifact's consumers regenerate
   variables:
-    RELEASE_TAG: $CI_COMMIT_TAG
-    PRODUCER: che-packages
-    PRODUCER_ARTIFACT: che-packages/catalog
-  trigger:
-    project: konradodwrot/cross-repo/automation
-    branch: main
-    forward:
-      yaml_variables: true
-      pipeline_variables: false
+    EVENT_TYPE: release.published
+    EVENT_DETAILS: '{"producer":"che-packages","artifact":"che-packages/catalog","tag":"$CI_COMMIT_TAG"}'
 ##[<] 🤖🤖
