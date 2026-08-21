@@ -136,8 +136,6 @@
 test-install-package-amd64:
   extends: .install-manual
   image: $CI_IMAGE_DIND
-  tags:
-    - gke-linux-amd64
   variables:
     TARGET_OS: linux
     TARGET_ARCH: amd64
@@ -149,7 +147,7 @@ test-install-package-arm64:
   extends: .install-manual
   image: $CI_IMAGE_DIND_ARM64
   tags:
-    - gke-linux-arm64
+    - gke-linux-arm64-small
   variables:
     TARGET_OS: linux
     TARGET_ARCH: arm64
