@@ -10,7 +10,7 @@ include:
 
 default:
   tags:
-    - gke-linux-amd64
+    - gke-linux-amd64-small
   retry:
     max: 2
     when:
