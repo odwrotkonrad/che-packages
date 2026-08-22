@@ -9,7 +9,7 @@ include:
   - local: .gitlab/ci/install-matrix.gitlab-ci.yml
   - project: konradodwrot/cross-repo/misc
     ref: $GRP_KO_VAR_MISC_REF
-    file: ci/templates/TriggerAutomation.gitlab-ci.yml
+    file: shared/ci/templates/TriggerAutomation.gitlab-ci.yml
 
 default:
   tags:
@@ -38,6 +38,7 @@ variables:
   ARTIFACT_REGISTRY_PROXY_DOCKERHUB: $GRP_KO_VAR_ARTIFACT_REGISTRY_PROXY_DOCKERHUB
   CI_IMAGES_REF: $GRP_KO_VAR_CI_IMAGES_REF
   PROSE_ASSETS_REF: $GRP_KO_VAR_PROSE_ASSETS_REF
+  MISC_REF: $GRP_KO_VAR_MISC_REF
   CI_IMAGE: $ARTIFACT_REGISTRY/ci-linux:$CI_IMAGES_REF
   CI_IMAGE_DIND: $ARTIFACT_REGISTRY/ci-linux-dind:$CI_IMAGES_REF
   CI_IMAGE_DIND_ARM64: $ARTIFACT_REGISTRY/ci-linux-dind:$CI_IMAGES_REF-arm64

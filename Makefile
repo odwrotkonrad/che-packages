@@ -31,9 +31,16 @@ METHOD ?=
 INSTALL_JOBS ?= 4
 
 WRAPPERS := repo-prepare-dev-env $(VENV) $(CHE_BIN) $(SCHEMA)
-COMMANDS := render-templates repo-render-env repo-prepare-deps test test-catalog test-install test-install-auto fetch-che fetch-schema clean
+COMMANDS := render-install-matrix repo-prepare-deps test test-catalog test-install test-install-auto fetch-che fetch-schema clean
 
+#[why] render-templates, repo-ci-render-templates and repo-render-env are declared .PHONY by the shared .mk, never here: a .PHONY name make cannot build reports "nothing to be done" and exits 0, turning a failed bootstrap into a silent success
 .PHONY: $(WRAPPERS) $(COMMANDS)
+
+#[why] CHE_BIN names the pinned che the install matrix tests against: unexport it so the shared render targets keep using the che on PATH
+unexport CHE_BIN
+
+#[what] the repo render also regenerates the install-matrix CI config
+render-templates: render-install-matrix
 
 $(VENV):
 	$(PY) -m venv $(VENV)
@@ -53,14 +60,19 @@ repo-prepare-deps: $(VENV)
 ##[<] Dev Environment
 
 ##[>] Docs [genai-include]
-#[what] render *.ontoRepo.tpl onto the repo (the per-package CI matrix)
-render-templates:
-	che render tpl -f templates/2-data/install-matrix.gitlab-ci.yml.ontoRepo.tpl > .gitlab/ci/install-matrix.gitlab-ci.yml
-	@che render-templates --profiles=ontoRepo
+#[what] shared render targets, authored in cross-repo/misc and rendered here by the bootstrap rule below
+-include shared/ci/make/render.mk
 
-#[what] render .env.tpl to .env: upstream refs and CI variables via glab, secrets via op
-repo-render-env:
-	@CHE_ENV_UNSET=empty che render-templates --profiles=envSeed
+#[why] gitignored shared/ tree: a fresh clone has no render.mk, so make renders it, then re-execs itself with the shared targets defined
+#[why] CI carries every ref as a job variable and has no glab auth: seed .env only when the environment names no MISC_REF
+#[why] bare `che` here, never $(CHE_BIN): that names the pinned che the install matrix tests against, not the one rendering this repo
+shared/ci/make/render.mk:
+	@[[ -n $${MISC_REF:-} ]] || CHE_ENV_UNSET=empty che render-templates --profiles=envSeed
+	@che render-templates --profiles=bootstrapCrossRepoCI
+
+#[what] regenerate the install-matrix CI config, then run the shared repo render
+render-install-matrix:
+	@che render tpl -f templates/2-data/install-matrix.gitlab-ci.yml.ontoRepo.tpl > .gitlab/ci/install-matrix.gitlab-ci.yml
 ##[<] Docs
 
 ##[>] Test [genai-include]
