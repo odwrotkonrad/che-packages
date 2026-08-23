@@ -3,10 +3,13 @@
 # Resolves the che a merge-request pipeline should test against: the newest
 # published 0.0.0-mr<iid> prerelease whose go-modules merge request is still
 # open, else nothing. Writes a make-includable fragment to $1 (default
-# .user/che-pin.resolved.env), setting CHE_VERSION and CHE_SCHEMA_REF together:
-# a binary and the schema its vocabulary comes from must be the same code, or
-# validating proves nothing about installing. Nothing resolved means an empty
-# file, leaving che-pin.env's values standing.
+# .user/che-pin.resolved.env), setting CHE_VERSION and CHE_PACKAGES_SCHEMA_REF
+# together: a binary and the schema its vocabulary comes from must be the same
+# code, or validating proves nothing about installing. Nothing resolved means an
+# empty file, leaving che-pin.env's values standing.
+#
+# Both halves are the same 0.0.0-mr<iid> string: go-modules publishes its
+# schemas at the MR's prerelease version too, so no raw git ref survives here.
 #
 # Best-effort throughout, mirroring configs' 00-ci-deps.zsh: a prerelease is a
 # convenience, never a reason to redden a pipeline that is not about che. Every
@@ -40,20 +43,19 @@ if [[ ${CI_PIPELINE_SOURCE:-} != merge_request_event ]] {
 }
 
 #[why] a real json parser, never sed or tr on the raw response: an MR description is free text
-#   carrying braces, quotes and newlines, and `sha` sits ~33 keys past `iid`, so any line-tool
-#   pairing splits mid-record and mismatches the two. python is stdlib-only here and is present
-#   wherever this runs, unlike jq or yq
+#   carrying braces, quotes and newlines that any line-tool pass would split mid-record. python is
+#   stdlib-only here and is present wherever this runs, unlike jq or yq
 fn_json_field() {
   python3 -c "$1" 2> /dev/null
 }
 
-#[what] iid<TAB>sha per open MR, newest first
-#[why] one request carries both halves: the iid a prerelease is keyed on, and the sha the schema is
-#   read from. sha not source_branch: immutable, and it sidesteps URL-encoding a branch name with a /
+#[what] one open MR iid per line, newest first
+#[why] the iid alone: it keys the che prerelease and the schema prereleases alike, so nothing here
+#   needs the commit sha any more
 fn_open_mrs() {
   $CURL "${GO_MODULES_API}/merge_requests?state=opened&per_page=100" 2> /dev/null |
     fn_json_field 'import json,sys
-for m in json.load(sys.stdin): print(m["iid"], m["sha"], sep="\t")'
+for m in json.load(sys.stdin): print(m["iid"])'
 }
 
 #[what] published che prerelease versions, newest first
@@ -64,20 +66,13 @@ for p in json.load(sys.stdin):
     if re.fullmatch(r"0\.0\.0-mr[0-9]+", p["version"]): print(p["version"])'
 }
 
-typeset -a open_mrs
-open_mrs=(${(f)"$(fn_open_mrs)"}) || open_mrs=()
-if (( ! ${#open_mrs} )) {
-  print 'resolve-che-version: no open go-modules merge requests, using che-pin.env'
-  exit 0
-}
-
 #[why] a real array of whole iids, never the raw scalar: (Ie) on a scalar matches substrings, so
 #   open MR !420 would wrongly claim !42's prerelease
 typeset -a open_iids
-typeset -A sha_of_iid
-for mr in $open_mrs; {
-  open_iids+=(${mr%%$'\t'*})
-  sha_of_iid[${mr%%$'\t'*}]=${mr##*$'\t'}
+open_iids=(${(f)"$(fn_open_mrs)"}) || open_iids=()
+if (( ! ${#open_iids} )) {
+  print 'resolve-che-version: no open go-modules merge requests, using che-pin.env'
+  exit 0
 }
 
 #[why] created_at desc: the first match walking down is the newest published prerelease
@@ -85,8 +80,9 @@ for version in ${(f)"$(fn_prerelease_versions)"}; {
   iid=${version#0.0.0-mr}
   if (( ${open_iids[(Ie)$iid]} )) {
     print -r -- "CHE_VERSION=${version}" >> "$TMP"
-    print -r -- "CHE_SCHEMA_REF=${sha_of_iid[$iid]}" >> "$TMP"
-    print "resolve-che-version: using che prerelease ${version} (go-modules MR !${iid}, schema at ${sha_of_iid[$iid]})"
+    print -r -- "CHE_PACKAGES_SCHEMA_REF=${version}" >> "$TMP"
+    print -r -- "CHE_SCHEMA_REF=${version}" >> "$TMP"
+    print "resolve-che-version: using che prerelease ${version} (go-modules MR !${iid}), schema at the same version"
     exit 0
   }
 }
