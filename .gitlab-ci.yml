@@ -9,7 +9,7 @@ include:
   - local: .gitlab/ci/install-matrix.gitlab-ci.yml
   - project: konradodwrot/cross-repo/misc
     ref: $GRP_KO_VAR_MISC_REF
-    file: shared/ci/templates/TriggerAutomation.gitlab-ci.yml
+    file: shared/ci/templates/EmitEvents.gitlab-ci.yml
 
 default:
   tags:
@@ -36,17 +36,26 @@ variables:
   CI_IMAGE_PY: $ARTIFACT_REGISTRY_PROXY_DOCKERHUB/library/python:3.13-slim
   ARTIFACT_REGISTRY: $GRP_KO_VAR_ARTIFACT_REGISTRY
   ARTIFACT_REGISTRY_PROXY_DOCKERHUB: $GRP_KO_VAR_ARTIFACT_REGISTRY_PROXY_DOCKERHUB
-  CI_IMAGES_REF: $GRP_KO_VAR_CI_IMAGES_REF
+  OCI_IMAGES_CI_LINUX_REF: $GRP_KO_VAR_OCI_IMAGES_CI_LINUX_REF
+  CHE_SCHEMA_REF: $GRP_KO_VAR_CHE_SCHEMA_REF
   PROSE_SPEC_REF: $GRP_KO_VAR_PROSE_SPEC_REF
-  CONFIGS_REF: $GRP_KO_VAR_CONFIGS_REF
   PROSE_ASSETS_REF: $GRP_KO_VAR_PROSE_ASSETS_REF
   MISC_REF: $GRP_KO_VAR_MISC_REF
-  CI_IMAGE: $ARTIFACT_REGISTRY/ci-linux:$CI_IMAGES_REF
-  CI_IMAGE_DIND: $ARTIFACT_REGISTRY/ci-linux-dind:$CI_IMAGES_REF
-  CI_IMAGE_DIND_ARM64: $ARTIFACT_REGISTRY/ci-linux-dind:$CI_IMAGES_REF-arm64
+  CI_IMAGE: $ARTIFACT_REGISTRY/ci-linux:$OCI_IMAGES_CI_LINUX_REF
+  CI_IMAGE_DIND: $ARTIFACT_REGISTRY/ci-linux-dind:$OCI_IMAGES_CI_LINUX_DIND_REF
+  CI_IMAGE_DIND_ARM64: $ARTIFACT_REGISTRY/ci-linux-dind:$OCI_IMAGES_CI_LINUX_DIND_REF-arm64
 
 #[what] fast automatic gate: schema validation plus every entry's methods and verify commands resolving
 validate-catalog:
+  rules:
+    - changes:
+        - packages.yml
+        - scripts/**/*
+        - tests/**/*
+        - pyproject.toml
+        - che-pin.env
+        - Makefile
+        - .gitlab-ci.yml
   stage: validate
   image: $CI_IMAGE_PY
   needs: []
@@ -103,6 +112,10 @@ publish-definitions:
   needs: []
   rules:
     - if: $CI_COMMIT_TAG
+      changes:
+        - packages.yml
+        - scripts/**/*
+        - ci/**/*
   script:
     - ci/publish-packages-defs.zsh
 
@@ -113,6 +126,9 @@ trigger-go-modules:
   needs: [publish-definitions]
   rules:
     - if: $CI_COMMIT_TAG
+      changes:
+        - packages.yml
+        - scripts/**/*
       when: manual
       allow_failure: true
   trigger:
@@ -123,13 +139,8 @@ trigger-go-modules:
 #[why] control, not infra/iac directly: control already owns the dependency graph and knows which
 #   repos consume the catalog, so onboarding a consumer stays an edit to that repo's own interface
 #   file rather than a hardcoded trigger here
-trigger-automation:
-  extends: .TriggerAutomation
+emit-events:
+  extends: .emit-events
   stage: trigger-downstream
-  needs: [publish-definitions]
-  rules:
-    - if: $CI_COMMIT_TAG
-  variables:
-    EVENT_TYPE: release.published
-    EVENT_DETAILS: '{"producer":"che-packages","artifact":"che-packages/catalog"}'
+
 ##[<] 🤖🤖

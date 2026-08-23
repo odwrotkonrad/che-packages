@@ -8,17 +8,19 @@ VENV := .user/venv
 PYTEST := $(VENV)/bin/pytest
 include che-pin.env
 #[what] a merge-request pipeline's resolved che: an open go-modules MR's prerelease, binary and
-#   schema ref together, overriding che-pin.env's floor. Empty everywhere else, so the pin stands.
-#[why] generated at parse time, before the includes below expand CHE_VERSION and CHE_SCHEMA_REF, and
-#   ignoring failure: resolution is best-effort, never a reason to break a catalog build
+#   schema version together, overriding che-pin.env's floor. Empty everywhere else, so the pin stands.
+#[why] generated at parse time, before the includes below expand CHE_VERSION and CHE_PACKAGES_SCHEMA_REF,
+#   and ignoring failure: resolution is best-effort, never a reason to break a catalog build
 RESOLVED_PIN := .user/che-pin.resolved.env
 _ := $(shell ci/resolve-che-version.zsh $(RESOLVED_PIN) >&2 || :)
 -include $(RESOLVED_PIN)
 CHE_BIN := .user/bin/che
 SCHEMA := .user/packages.schema.json
-#[why] che owns the vocabulary: the schema is generated from its Go models and fetched from
-#   the che repo, never copied here, so one contract has one source of truth
-SCHEMA_URL ?= https://gitlab.com/konradodwrot/go-modules/-/raw/$(CHE_SCHEMA_REF)/che/assets/data/packages.schema.json
+#[why] che owns the vocabulary: the schema is generated from its Go models and fetched by version
+#   from the generic package registry, never copied here, so one contract has one source of truth
+#[why] a published artifact version, never a raw git ref: raw/main moves under this repo whenever a
+#   vocabulary change merges, silently changing what the catalog validates against
+SCHEMA_URL ?= https://gitlab.com/api/v4/projects/konradodwrot%2Fgo-modules/packages/generic/che-packages-schema/$(CHE_PACKAGES_SCHEMA_REF)/che-packages.schema.json
 TARGET_ARCH ?= $(if $(filter arm64 aarch64,$(shell uname -m)),arm64,amd64)
 #[why] an os axis beside the arch, each naming exactly one: darwin arm64 needs a different
 #   virtualisation engine rather than another docker --platform value, so one combined "all"

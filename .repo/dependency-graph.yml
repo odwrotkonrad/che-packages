@@ -1,0 +1,27 @@
+##[>] 🤖
+dependsOn:
+  #[why] the catalog genuinely builds against che-packages-schema: test-catalog validates every entry
+  #   against it, so a schema version change can fail this repo's own pipeline
+  gitlab.com/konradodwrot/che-packages:
+    - uri: gitlab.com/konradodwrot/go-modules/che-packages-schema
+      type: file
+  ciEnv:
+    - uri: gitlab.com/konradodwrot/cross-repo/misc
+      type: gitRepository
+    - uri: gitlab.com/konradodwrot/go-modules/che
+      type: goModule
+    - uri: us-central1-docker.pkg.dev/staging-499418/ci/ci-linux
+      type: ociImage
+    - uri: us-central1-docker.pkg.dev/staging-499418/ci/ci-linux-dind
+      type: ociImage
+  #[why] che-schema serves this repo's che.yml editor header alone: nothing in CI or the catalog
+  #   reads it, so it is a dev-environment input, never a build one
+  repoContents:
+    - uri: gitlab.com/konradodwrot/cross-repo/prose/assets
+      type: gitRepository
+    - uri: gitlab.com/konradodwrot/cross-repo/prose/spec
+      type: gitRepository
+  devEnv:
+    - uri: gitlab.com/konradodwrot/go-modules/che-schema
+      type: file
+##[<] 🤖
