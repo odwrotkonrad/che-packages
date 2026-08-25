@@ -48,6 +48,8 @@ variables:
 
 #[what] fast automatic gate: schema validation plus every entry's methods and verify commands resolving
 validate-catalog:
+  #[why] the .repo/ declarations and .env.tpl are on the list so a commit touching only them still
+  #   runs a job: a pipeline that creates none is reported as failed, not as nothing to do
   rules:
     - changes:
         - packages.yml
@@ -57,6 +59,11 @@ validate-catalog:
         - che-pin.env
         - Makefile
         - .gitlab-ci.yml
+        - .env.tpl
+        - .repo/*.tpl
+        - .repo/deps-graph.yml
+        - .repo/upstream.yml
+        - .repo/upstream.env
   stage: validate
   image: $CI_IMAGE_PY
   needs: []
