@@ -41,6 +41,8 @@ variables:
   PROSE_SPEC_REF: $GRP_KO_VAR_PROSE_SPEC_REF
   PROSE_ASSETS_REF: $GRP_KO_VAR_PROSE_ASSETS_REF
   MISC_REF: $GRP_KO_VAR_MISC_REF
+  #[why] nothing here reads it, misc's claude-agents profile does: che parses every profile in
+  #   a remote spec at init, so including misc needs AI_CONFIGS_REF resolvable
   AI_CONFIGS_REF: $GRP_KO_VAR_AI_CONFIGS_REF
   CI_IMAGE: $ARTIFACT_REGISTRY/ci-linux:$OCI_IMAGES_CI_LINUX_REF
   CI_IMAGE_DIND: $ARTIFACT_REGISTRY/ci-linux-dind:$OCI_IMAGES_CI_LINUX_DIND_REF
