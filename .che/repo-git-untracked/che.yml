@@ -15,5 +15,5 @@ bootstrapCrossRepoCI:
   include:
     profiles:
       - source: "git::https://gitlab.com/konradodwrot/cross-repo/misc@${{ var.MISC_REF }}"
-        profile: bootstrapCrossRepoCI
+        profile: bootstrapCrossRepoAssets
 ##[<] 🤖🤖
