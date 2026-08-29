@@ -37,12 +37,13 @@ variables:
   ARTIFACT_REGISTRY: $GRP_KO_VAR_ARTIFACT_REGISTRY
   ARTIFACT_REGISTRY_PROXY_DOCKERHUB: $GRP_KO_VAR_ARTIFACT_REGISTRY_PROXY_DOCKERHUB
   OCI_IMAGES_CI_LINUX_REF: $GRP_KO_VAR_OCI_IMAGES_CI_LINUX_REF
+  OCI_IMAGES_CI_LINUX_DIND_REF: $GRP_KO_VAR_OCI_IMAGES_CI_LINUX_DIND_REF
   CHE_SCHEMA_REF: $GRP_KO_VAR_CHE_SCHEMA_REF
   PROSE_SPEC_REF: $GRP_KO_VAR_PROSE_SPEC_REF
   PROSE_ASSETS_REF: $GRP_KO_VAR_PROSE_ASSETS_REF
   MISC_REF: $GRP_KO_VAR_MISC_REF
-  #[why] nothing here reads it, misc's claude-agents profile does: che parses every profile in
-  #   a remote spec at init, so including misc needs AI_TOOLS_CONFIGS_REF resolvable
+  #[why] nothing here reads it: che parses every profile in a remote spec at init, so including
+  #   misc needs every ref its spec names resolvable
   AI_TOOLS_CONFIGS_REF: $GRP_KO_VAR_AI_TOOLS_CONFIGS_REF
   CI_IMAGE: $ARTIFACT_REGISTRY/ci-linux:$OCI_IMAGES_CI_LINUX_REF
   CI_IMAGE_DIND: $ARTIFACT_REGISTRY/ci-linux-dind:$OCI_IMAGES_CI_LINUX_DIND_REF
@@ -61,7 +62,6 @@ validate-catalog:
         - che-pin.env
         - Makefile
         - .gitlab-ci.yml
-        - .env.tpl
         - .repo/*.tpl
         - .repo/deps-graph.yml
         - .repo/upstream.yml

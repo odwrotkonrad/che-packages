@@ -3,6 +3,7 @@
 #   cross-repo interface file stays untracked and invisible to git status, and control's graph
 #   sees no producer for this repo's catalog
 !.repo/
+!.che/
 .user/
 packages.schema.json
 __pycache__/
