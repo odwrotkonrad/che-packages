@@ -6,6 +6,8 @@ include:
 #[why] the repo declares the toolchain its dependency step needs, so no host or image has to carry
 #   python in advance for this repo's venv to build
 devEnv:
+  options:
+    autoDiscover: false
   include:
     installPackages:
       - python3

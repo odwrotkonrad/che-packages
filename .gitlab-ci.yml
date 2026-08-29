@@ -61,6 +61,7 @@ validate-catalog:
         - pyproject.toml
         - che-pin.env
         - Makefile
+        - .che/**/*
         - .gitlab-ci.yml
         - .repo/*.tpl
         - .repo/deps-graph.yml
