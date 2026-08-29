@@ -58,7 +58,7 @@ verify commands resolving.
 
 ## Releases
 
-A `v<version>` tag publishes `che-packages_<version>.tar.gz` (`packages.yml` +
+A `v<version>` tag publishes `che-packages_v<version>.tar.gz` (`packages.yml` +
 `scripts/`) with a `checksums.txt` to the generic package registry, links both as
 release assets, and refreshes the moving `latest/` alias plus `version.txt` that
 `che packages update` reads.
