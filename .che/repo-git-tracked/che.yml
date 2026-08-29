@@ -4,8 +4,6 @@
 #   repo with nothing to say about it. full doc adoption (AGENTS.md, README.md) needs 3-audience
 #   templates authored in prose, a separate change
 ontoRepo:
-  options:
-    autoDiscover: true
   include:
     renderTemplates:
       - source: "git::gitlab.com/konradodwrot/cross-repo/prose/assets@${{ var.PROSE_ASSETS_REF }}"
