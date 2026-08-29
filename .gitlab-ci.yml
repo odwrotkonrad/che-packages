@@ -7,9 +7,13 @@ workflow:
 
 include:
   - local: .gitlab/ci/install-matrix.gitlab-ci.yml
-  - project: konradodwrot/cross-repo/misc
-    ref: $GRP_KO_VAR_MISC_REF
-    file: shared/ci/templates/EmitEvents.gitlab-ci.yml
+  - project: konradodwrot/centralized/assets/generic
+    ref: $GRP_KO_VAR_CENTRALIZED_ASSETS_GENERIC_REF
+    file:
+      - consumer-repo-config/ci/templates/EmitEvents.gitlab-ci.yml
+      - consumer-repo-config/files-generation/templates/FilesTrackedVerify.gitlab-ci.yml
+      - consumer-repo-config/precommit-lefthook/templates/PrecommitChanged.gitlab-ci.yml
+      - consumer-repo-config/precommit-lefthook/templates/PrecommitAll.gitlab-ci.yml
 
 default:
   tags:
@@ -40,10 +44,7 @@ variables:
   OCI_IMAGES_CI_LINUX_DIND_REF: $GRP_KO_VAR_OCI_IMAGES_CI_LINUX_DIND_REF
   CHE_SCHEMA_REF: $GRP_KO_VAR_CHE_SCHEMA_REF
   PROSE_SPEC_REF: $GRP_KO_VAR_PROSE_SPEC_REF
-  PROSE_ASSETS_REF: $GRP_KO_VAR_PROSE_ASSETS_REF
-  MISC_REF: $GRP_KO_VAR_MISC_REF
-  #[why] nothing here reads it: che parses every profile in a remote spec at init, so including
-  #   misc needs every ref its spec names resolvable
+  CENTRALIZED_ASSETS_GENERIC_REF: $GRP_KO_VAR_CENTRALIZED_ASSETS_GENERIC_REF
   AI_TOOLS_CONFIGS_REF: $GRP_KO_VAR_AI_TOOLS_CONFIGS_REF
   CI_IMAGE: $ARTIFACT_REGISTRY/ci-linux:$OCI_IMAGES_CI_LINUX_REF
   CI_IMAGE_DIND: $ARTIFACT_REGISTRY/ci-linux-dind:$OCI_IMAGES_CI_LINUX_DIND_REF

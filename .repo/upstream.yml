@@ -1,11 +1,8 @@
 ##[>] 🤖
 upstream:
-  - uri: gitlab.com/konradodwrot/cross-repo/misc
+  - uri: gitlab.com/konradodwrot/centralized/assets/generic
     type: gitRepository
-    versionEnvVar: MISC_REF
-  - uri: gitlab.com/konradodwrot/cross-repo/prose/assets
-    type: gitRepository
-    versionEnvVar: PROSE_ASSETS_REF
+    versionEnvVar: CENTRALIZED_ASSETS_GENERIC_REF
   - uri: gitlab.com/konradodwrot/cross-repo/prose/spec
     type: gitRepository
     versionEnvVar: PROSE_SPEC_REF
