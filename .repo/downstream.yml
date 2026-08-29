@@ -3,5 +3,5 @@ downstream:
   - uri: gitlab.com/konradodwrot/che-packages
     type: gitRepository
     versionEnvVar: CHE_PACKAGES_REF
-    version: v0.0.18
+    version: v0.0.21
 ##[<] 🤖
