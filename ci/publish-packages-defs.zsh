@@ -11,7 +11,7 @@ set -eu
 
 TAG="${CI_COMMIT_TAG:?}"
 MODULE="che-packages"
-MODULE_VERSION="${TAG#v}"
+MODULE_VERSION="$TAG"
 
 NAME="${MODULE}_${MODULE_VERSION}.tar.gz"
 mkdir -p dist
