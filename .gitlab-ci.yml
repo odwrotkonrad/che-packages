@@ -67,6 +67,10 @@ validate-catalog:
         - .repo/deps-graph.yml
         - .repo/upstream.yml
         - .repo/upstream.env
+        - .repo/downstream.yml
+        - ci/**/*
+        - .gitlab/**/*
+        - README.md
   stage: validate
   image: $CI_IMAGE_PY
   needs: []
