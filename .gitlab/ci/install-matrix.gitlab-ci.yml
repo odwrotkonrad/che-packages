@@ -109,6 +109,7 @@
   - uv
   - watch
   - xz
+  - yamllint
   - yq
   - zig
   - zlib
