@@ -1,8 +1,10 @@
 # yaml-language-server: $schema=https://gitlab.com/api/v4/projects/konradodwrot%2Fgo-modules/packages/generic/che-schema/v0.0.1-che-min-v0.0.96/che.schema.json
 ##[>] 🤖🤖
-repo/filesTracked:
-  include:
-    renderTemplates:
-      - source: ../../templates/2-data/install-matrix.gitlab-ci.yml.ontoRepo.tpl
-        dest: .gitlab/ci/install-matrix.gitlab-ci.yml
+profilesDefinitions:
+  'repo/filesTracked':
+    type: repo-git-tracked
+    include:
+      renderTemplates:
+        - source: ../../templates/2-data/install-matrix.gitlab-ci.yml.ontoRepo.tpl
+          dest: .gitlab/ci/install-matrix.gitlab-ci.yml
 ##[<] 🤖🤖
