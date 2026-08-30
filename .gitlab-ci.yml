@@ -99,6 +99,7 @@ validate-catalog:
     CHE_E2E_BASE_IMAGE: $ARTIFACT_REGISTRY_PROXY_DOCKERHUB/library/debian:bookworm-slim
   needs:
     - job: validate-catalog
+      optional: true
   before_script:
     #[why] zsh: the prerelease resolver make runs before fetching
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends python3-pip python3-venv curl ca-certificates zsh
