@@ -16,7 +16,6 @@ dependsOn:
       type: ociImage
   #[why] che-schema serves this repo's che.yml editor header alone: nothing in CI or the catalog
   #   reads it, so it is a dev-environment input, never a build one
-  repoContents:
     - uri: gitlab.com/konradodwrot/centralized/assets/prose/human
       type: gitRepository
     - uri: gitlab.com/konradodwrot/centralized/assets/prose/ai
