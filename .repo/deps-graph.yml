@@ -17,8 +17,6 @@ dependsOn:
   #[why] che-schema serves this repo's che.yml editor header alone: nothing in CI or the catalog
   #   reads it, so it is a dev-environment input, never a build one
   repoContents:
-    - uri: gitlab.com/konradodwrot/cross-repo/prose/spec
-      type: gitRepository
   devEnv:
     - uri: gitlab.com/konradodwrot/go-modules/che-schema
       type: file
