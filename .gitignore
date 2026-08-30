@@ -12,6 +12,8 @@ __pycache__/
 AGENTS.md
 CLAUDE.md
 assets/docs-agents/
+/assets/data/makefile.agents.md
+/assets/data/repo-structure.md
 /shared/
 /lefthook.yml
 /.env
