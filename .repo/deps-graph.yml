@@ -6,7 +6,7 @@ dependsOn:
     - uri: gitlab.com/konradodwrot/go-modules/che-packages-schema
       type: file
   ciEnv:
-    - uri: gitlab.com/konradodwrot/cross-repo/misc
+    - uri: gitlab.com/konradodwrot/centralized/assets/generic
       type: gitRepository
     - uri: gitlab.com/konradodwrot/go-modules/che
       type: goModule
@@ -17,8 +17,6 @@ dependsOn:
   #[why] che-schema serves this repo's che.yml editor header alone: nothing in CI or the catalog
   #   reads it, so it is a dev-environment input, never a build one
   repoContents:
-    - uri: gitlab.com/konradodwrot/cross-repo/prose/assets
-      type: gitRepository
     - uri: gitlab.com/konradodwrot/cross-repo/prose/spec
       type: gitRepository
   devEnv:

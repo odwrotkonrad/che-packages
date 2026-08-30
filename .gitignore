@@ -12,7 +12,9 @@ __pycache__/
 AGENTS.md
 CLAUDE.md
 assets/docs-agents/
-#[why] shared render payload: authored in cross-repo/misc, rendered here, never tracked
+/assets/data/makefile.agents.md
+/assets/data/repo-structure.md
 /shared/
+/lefthook.yml
 /.env
 ##[<] 🤖🤖
