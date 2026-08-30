@@ -5,6 +5,6 @@ profilesDefinitions:
     type: repo-git-tracked
     include:
       renderTemplates:
-        - source: ../../templates/2-data/install-matrix.gitlab-ci.yml.ontoRepo.tpl
+        - source: ${{ repoRoot }}/templates/2-data/install-matrix.gitlab-ci.yml.ontoRepo.tpl
           dest: .gitlab/ci/install-matrix.gitlab-ci.yml
 ##[<] 🤖🤖
