@@ -55,9 +55,9 @@ def cat() -> catalog.Catalog:
 
 @pytest.fixture(scope="session")
 def che_bin() -> Path:
-    p = Path(os.environ.get("CHE_BIN", REPO / ".user" / "bin" / "che"))
+    p = Path(os.environ.get("BIN_CHE", REPO / ".user" / "bin" / "che"))
     if not p.exists():
-        pytest.skip(f"che binary absent at {p}; set CHE_BIN or run make fetch-che")
+        pytest.skip(f"che binary absent at {p}; set BIN_CHE or run make fetch-che")
     return p
 
 
