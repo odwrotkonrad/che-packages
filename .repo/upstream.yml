@@ -3,9 +3,6 @@ upstream:
   - uri: gitlab.com/konradodwrot/centralized/assets/generic
     type: gitRepository
     versionEnvVar: CENTRALIZED_ASSETS_GENERIC_REF
-  - uri: gitlab.com/konradodwrot/cross-repo/prose/spec
-    type: gitRepository
-    versionEnvVar: PROSE_SPEC_REF
   - uri: gitlab.com/konradodwrot/go-modules/che-schema
     type: file
     versionEnvVar: CHE_SCHEMA_REF
